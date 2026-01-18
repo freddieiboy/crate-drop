@@ -18,7 +18,8 @@ export const LOCATION_CONFIG = {
 };
 
 // How far user must move before refetching crates from server
-export const CRATE_REFETCH_DISTANCE_METERS = 100;
+// Should be less than RADAR_RANGE_METERS so new crates appear before you reach them
+export const CRATE_REFETCH_DISTANCE_METERS = 30;
 
 // App colors
 export const COLORS = {

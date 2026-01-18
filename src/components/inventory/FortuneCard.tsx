@@ -8,6 +8,56 @@ import type { CollectedCrate } from '../../types';
 const { width } = Dimensions.get('window');
 const CARD_SIZE = width - 40;
 
+// Custom map style to hide all labels and text
+const MAP_STYLE_NO_LABELS = [
+  {
+    elementType: 'labels',
+    stylers: [{ visibility: 'off' }],
+  },
+  {
+    featureType: 'administrative',
+    stylers: [{ visibility: 'off' }],
+  },
+  {
+    featureType: 'poi',
+    stylers: [{ visibility: 'off' }],
+  },
+  {
+    featureType: 'road',
+    elementType: 'labels',
+    stylers: [{ visibility: 'off' }],
+  },
+  {
+    featureType: 'transit',
+    stylers: [{ visibility: 'off' }],
+  },
+  {
+    featureType: 'water',
+    elementType: 'labels',
+    stylers: [{ visibility: 'off' }],
+  },
+  // Dark theme colors
+  {
+    elementType: 'geometry',
+    stylers: [{ color: '#1a1a2e' }],
+  },
+  {
+    featureType: 'road',
+    elementType: 'geometry',
+    stylers: [{ color: '#2d2d44' }],
+  },
+  {
+    featureType: 'water',
+    elementType: 'geometry',
+    stylers: [{ color: '#0d1117' }],
+  },
+  {
+    featureType: 'landscape',
+    elementType: 'geometry',
+    stylers: [{ color: '#16213e' }],
+  },
+];
+
 interface FortuneCardProps {
   crate: CollectedCrate;
 }
@@ -45,8 +95,10 @@ export function FortuneCard({ crate }: FortuneCardProps) {
           zoomEnabled={false}
           rotateEnabled={false}
           pitchEnabled={false}
-          mapType="mutedStandard"
-          userInterfaceStyle="dark"
+          mapType="satellite"
+          showsCompass={false}
+          showsScale={false}
+          showsUserLocation={false}
         >
           <Marker
             coordinate={{
@@ -63,11 +115,14 @@ export function FortuneCard({ crate }: FortuneCardProps) {
         <View style={styles.noMapBackground} />
       )}
 
-      {/* Mesh Gradient Overlays */}
+      {/* Mesh Gradient Overlays - heavy enough to obscure map labels */}
       <View style={styles.gradientContainer}>
+        {/* Base dark layer to hide map labels */}
+        <View style={styles.baseDarkLayer} />
+
         {/* Top-left warm gradient */}
         <LinearGradient
-          colors={['rgba(255, 100, 50, 0.4)', 'transparent']}
+          colors={['rgba(255, 100, 50, 0.5)', 'transparent']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.meshGradient1}
@@ -75,7 +130,7 @@ export function FortuneCard({ crate }: FortuneCardProps) {
 
         {/* Bottom-right cool gradient */}
         <LinearGradient
-          colors={['transparent', 'rgba(0, 255, 136, 0.3)']}
+          colors={['transparent', 'rgba(0, 255, 136, 0.4)']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.meshGradient2}
@@ -83,7 +138,7 @@ export function FortuneCard({ crate }: FortuneCardProps) {
 
         {/* Purple accent */}
         <LinearGradient
-          colors={['rgba(138, 43, 226, 0.3)', 'transparent']}
+          colors={['rgba(138, 43, 226, 0.4)', 'transparent']}
           start={{ x: 1, y: 0 }}
           end={{ x: 0, y: 1 }}
           style={styles.meshGradient3}
@@ -91,7 +146,7 @@ export function FortuneCard({ crate }: FortuneCardProps) {
 
         {/* Dark overlay for text readability */}
         <LinearGradient
-          colors={['rgba(0,0,0,0.2)', 'rgba(0,0,0,0.7)']}
+          colors={['rgba(0,0,0,0.4)', 'rgba(0,0,0,0.8)']}
           start={{ x: 0, y: 0 }}
           end={{ x: 0, y: 1 }}
           style={styles.darkOverlay}
@@ -135,6 +190,10 @@ const styles = StyleSheet.create({
   },
   gradientContainer: {
     ...StyleSheet.absoluteFillObject,
+  },
+  baseDarkLayer: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(10, 10, 20, 0.6)',
   },
   meshGradient1: {
     position: 'absolute',

@@ -65,6 +65,9 @@ export async function startBackgroundLocationTracking(): Promise<boolean> {
       deferredUpdatesInterval: 60000, // Batch every 60 seconds
       deferredUpdatesDistance: 50, // Or every 50 meters
       showsBackgroundLocationIndicator: true, // iOS blue bar
+      // iOS-specific options
+      activityType: Location.ActivityType.Fitness, // Walking/running activity
+      pausesUpdatesAutomatically: false, // Don't let iOS pause updates
       foregroundService: {
         // Android foreground service
         notificationTitle: 'Crate Drop Active',

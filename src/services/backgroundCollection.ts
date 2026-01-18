@@ -88,6 +88,8 @@ export async function processBackgroundLocation(
 
 /**
  * Collect a crate in background mode
+ * NOTE: On iOS, background tasks have limited execution time (~30s).
+ * We schedule the notification FIRST to ensure it fires even if iOS kills the task.
  */
 async function collectCrateInBackground(
   userId: string,
@@ -101,9 +103,6 @@ async function collectCrateInBackground(
       console.error('Failed to record collection in background');
       return;
     }
-
-    // Mark as collected in persistent storage to prevent duplicates
-    await addCollectedId(crate.id);
 
     // Create CollectedCrate object with location
     const collectedCrate: CollectedCrate = {
@@ -120,12 +119,17 @@ async function collectCrateInBackground(
       longitude: crate.longitude,
     };
 
-    // Update stores (hook-free access)
+    // CRITICAL: Schedule notification FIRST before any other async operations
+    // iOS may kill background task at any time, so prioritize user-facing notification
+    await scheduleCollectionNotification(collectedCrate);
+    console.log('Background notification scheduled for crate:', crate.id);
+
+    // Mark as collected in persistent storage to prevent duplicates
+    await addCollectedId(crate.id);
+
+    // Update stores (hook-free access) - less critical, app will sync on next open
     useInventoryStore.getState().addCollection(collectedCrate);
     useCrateStore.getState().removeCrate(crate.id);
-
-    // Send notification
-    await scheduleCollectionNotification(collectedCrate);
 
     console.log('Background collection successful:', crate.id);
   } catch (error) {
