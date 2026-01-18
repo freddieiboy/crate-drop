@@ -4,9 +4,9 @@ import { useLocationStore } from '../store/locationStore';
 import { LOCATION_CONFIG } from '../utils/constants';
 
 // Location filtering constants
-const MIN_ACCURACY_METERS = 25; // Only use positions with accuracy better than this
-const MAX_JUMP_METERS = 15; // Ignore jumps larger than this in a short time
-const SMOOTHING_FACTOR = 0.3; // How much to weight new position (0-1, lower = smoother)
+const MIN_ACCURACY_METERS = 30; // Only use positions with accuracy better than this
+const MAX_JUMP_METERS = 20; // Ignore jumps larger than this in a short time
+const SMOOTHING_FACTOR = 0.7; // How much to weight new position (0-1, higher = more responsive)
 
 // Calculate distance between two points in meters
 function getDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {

@@ -35,10 +35,10 @@ export function CrateBlip({ x, y, distance, maxDistance }: CrateBlipProps) {
       case 0: // Inner ring - fast pulse, full opacity, sharp edges
         return { duration: 600, pulseScale: 1.4, baseOpacity: 1, blurRadius: 4, edgeSharpness: 1 };
       case 1: // Middle ring - slower pulse, softer edges
-        return { duration: 1200, pulseScale: 1.25, baseOpacity: 0.7, blurRadius: 12, edgeSharpness: 0.5 };
-      case 2: // Outer ring - barely pulsing, very soft/blurry edges
+        return { duration: 1200, pulseScale: 1.25, baseOpacity: 0.9, blurRadius: 10, edgeSharpness: 0.7 };
+      case 2: // Outer ring - gentle pulse, still visible
       default:
-        return { duration: 2400, pulseScale: 1.1, baseOpacity: 0.5, blurRadius: 20, edgeSharpness: 0.15 };
+        return { duration: 2400, pulseScale: 1.1, baseOpacity: 0.8, blurRadius: 14, edgeSharpness: 0.5 };
     }
   }, [zone]);
 

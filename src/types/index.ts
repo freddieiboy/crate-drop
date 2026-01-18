@@ -36,4 +36,6 @@ export interface CollectedCrate {
   collectedAt: string;
   openedAt: string | null;
   fortune: Fortune;
+  latitude?: number;
+  longitude?: number;
 }

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { View, StyleSheet, Dimensions } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -22,10 +22,24 @@ interface RadarViewProps {
   crates: Crate[];
 }
 
+/**
+ * Calculate the shortest angular difference between two angles
+ * Returns a value between -180 and 180
+ */
+function shortestAngleDelta(from: number, to: number): number {
+  let delta = ((to - from + 180) % 360) - 180;
+  if (delta < -180) delta += 360;
+  return delta;
+}
+
 export function RadarView({ userLocation, crates }: RadarViewProps) {
   const pingScale = useSharedValue(0);
   const pingOpacity = useSharedValue(0.6);
   const radarRotation = useSharedValue(0);
+
+  // Track the previous heading and cumulative rotation
+  const prevHeading = useRef<number | null>(null);
+  const cumulativeRotation = useRef(0);
 
   // Ping animation
   useEffect(() => {
@@ -41,11 +55,23 @@ export function RadarView({ userLocation, crates }: RadarViewProps) {
     );
   }, [pingScale, pingOpacity]);
 
-  // Update rotation when heading changes
+  // Update rotation when heading changes - handles 360°/0° wraparound smoothly
   useEffect(() => {
     if (userLocation?.heading != null) {
-      // Negative rotation so that "forward" points up
-      radarRotation.value = withSpring(-userLocation.heading, {
+      const newHeading = userLocation.heading;
+
+      if (prevHeading.current === null) {
+        // First heading value - set directly
+        prevHeading.current = newHeading;
+        cumulativeRotation.current = -newHeading;
+      } else {
+        // Calculate shortest path delta and accumulate
+        const delta = shortestAngleDelta(prevHeading.current, newHeading);
+        cumulativeRotation.current -= delta;
+        prevHeading.current = newHeading;
+      }
+
+      radarRotation.value = withSpring(cumulativeRotation.current, {
         damping: 30,
         stiffness: 60,
         mass: 1,

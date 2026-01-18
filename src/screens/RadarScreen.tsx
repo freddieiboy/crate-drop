@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { RadarView } from '../components/radar/RadarView';
 import { CollectionToast } from '../components/common/CollectionToast';
@@ -12,9 +12,17 @@ import type { CollectedCrate } from '../types';
 
 export function RadarScreen() {
   const { location, error } = useLocation();
-  const { crates } = useNearbyCrates();
+  const { crates, refetch } = useNearbyCrates();
   const collections = useInventoryStore((state) => state.collections);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = useCallback(async () => {
+    if (refreshing) return;
+    setRefreshing(true);
+    await refetch();
+    setRefreshing(false);
+  }, [refetch, refreshing]);
 
   // Handle auto-collection
   useCrateProximity({
@@ -31,7 +39,20 @@ export function RadarScreen() {
       <View style={styles.content}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>RADAR</Text>
+          <View style={styles.titleRow}>
+            <Text style={styles.title}>RADAR</Text>
+            <TouchableOpacity
+              style={styles.refreshButton}
+              onPress={handleRefresh}
+              disabled={refreshing}
+            >
+              {refreshing ? (
+                <ActivityIndicator size="small" color={COLORS.accent} />
+              ) : (
+                <Text style={styles.refreshIcon}>↻</Text>
+              )}
+            </TouchableOpacity>
+          </View>
           <Text style={styles.subtitle}>
             {crates.length} crate{crates.length !== 1 ? 's' : ''} nearby
           </Text>
@@ -81,13 +102,32 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    marginBottom: 30,
+    marginBottom: 20,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   title: {
     fontSize: 28,
     fontWeight: '700',
     color: COLORS.text,
     letterSpacing: 4,
+  },
+  refreshButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: COLORS.card,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.radarRing,
+  },
+  refreshIcon: {
+    fontSize: 18,
+    color: COLORS.accent,
   },
   subtitle: {
     fontSize: 14,
@@ -100,7 +140,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   status: {
-    paddingBottom: 30,
+    paddingBottom: 20,
     alignItems: 'center',
   },
   statusText: {

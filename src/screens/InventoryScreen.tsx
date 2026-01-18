@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,16 +6,40 @@ import {
   TouchableOpacity,
   Modal,
   ScrollView,
+  RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useInventoryStore } from '../store/inventoryStore';
 import { CrateOpenModal } from './CrateOpenModal';
+import { FortuneCard } from '../components/inventory/FortuneCard';
 import { COLORS } from '../utils/constants';
 import type { CollectedCrate } from '../types';
 
 export function InventoryScreen() {
   const collections = useInventoryStore((state) => state.collections);
+  const pendingOpenCrateId = useInventoryStore((state) => state.pendingOpenCrateId);
+  const setPendingOpenCrateId = useInventoryStore((state) => state.setPendingOpenCrateId);
+  const syncFromServer = useInventoryStore((state) => state.syncFromServer);
   const [selectedCrate, setSelectedCrate] = useState<CollectedCrate | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await syncFromServer();
+    setRefreshing(false);
+  }, [syncFromServer]);
+
+  // Auto-open crate when navigating from notification tap
+  useEffect(() => {
+    if (pendingOpenCrateId) {
+      const crateToOpen = collections.find((c) => c.id === pendingOpenCrateId);
+      if (crateToOpen && !crateToOpen.openedAt) {
+        setSelectedCrate(crateToOpen);
+      }
+      // Clear the pending ID
+      setPendingOpenCrateId(null);
+    }
+  }, [pendingOpenCrateId, collections, setPendingOpenCrateId]);
 
   // Split into unopened and opened crates
   const { unopenedCrates, openedCrates } = useMemo(() => {
@@ -47,11 +71,8 @@ export function InventoryScreen() {
   );
 
   const renderOpenedCrate = (item: CollectedCrate) => (
-    <View key={item.id} style={styles.fortuneCard}>
-      <Text style={styles.fortuneMessage}>"{item.fortune.message}"</Text>
-      <Text style={styles.fortuneDate}>
-        Discovered {formatDate(item.openedAt!)}
-      </Text>
+    <View key={item.id} style={styles.fortuneCardWrapper}>
+      <FortuneCard crate={item} />
     </View>
   );
 
@@ -67,18 +88,38 @@ export function InventoryScreen() {
       </View>
 
       {hasNoCrates ? (
-        <View style={styles.emptyState}>
-          <Text style={styles.emptyIcon}>🔍</Text>
-          <Text style={styles.emptyTitle}>No crates yet</Text>
-          <Text style={styles.emptyText}>
-            Walk around to find crates on the radar!
-          </Text>
-        </View>
+        <ScrollView
+          contentContainerStyle={styles.emptyStateContainer}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={COLORS.accent}
+              colors={[COLORS.accent]}
+            />
+          }
+        >
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyIcon}>🔍</Text>
+            <Text style={styles.emptyTitle}>No crates yet</Text>
+            <Text style={styles.emptyText}>
+              Walk around to find crates on the radar!
+            </Text>
+          </View>
+        </ScrollView>
       ) : (
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={COLORS.accent}
+              colors={[COLORS.accent]}
+            />
+          }
         >
           {/* Unopened Crates Section */}
           {unopenedCrates.length > 0 && (
@@ -209,27 +250,15 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     letterSpacing: 1,
   },
-  fortuneCard: {
-    backgroundColor: COLORS.card,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 10,
-    borderLeftWidth: 3,
-    borderLeftColor: COLORS.accent,
+  fortuneCardWrapper: {
+    alignItems: 'center',
+    marginBottom: 8,
   },
-  fortuneMessage: {
-    fontSize: 15,
-    fontStyle: 'italic',
-    color: COLORS.text,
-    lineHeight: 22,
-  },
-  fortuneDate: {
-    fontSize: 11,
-    color: COLORS.textMuted,
-    marginTop: 8,
+  emptyStateContainer: {
+    flexGrow: 1,
+    justifyContent: 'center',
   },
   emptyState: {
-    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 40,

@@ -1,14 +1,20 @@
 // Collection radius in meters - how close user needs to be to auto-collect
 export const COLLECTION_RADIUS_METERS = 10;
 
+// Background location task name
+export const BACKGROUND_LOCATION_TASK = 'background-location-task';
+
+// Android notification channel ID
+export const NOTIFICATION_CHANNEL_ID = 'crate-drops';
+
 // Radar range in meters - how far crates are visible on radar
 export const RADAR_RANGE_METERS = 50;
 
 // Location tracking configuration
 export const LOCATION_CONFIG = {
   accuracy: 6, // Location.Accuracy.High
-  distanceInterval: 5, // Update every 5 meters moved
-  timeInterval: 3000, // Or every 3 seconds
+  distanceInterval: 2, // Update every 2 meters moved
+  timeInterval: 1000, // Or every 1 second
 };
 
 // How far user must move before refetching crates from server

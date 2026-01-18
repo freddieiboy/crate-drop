@@ -100,6 +100,8 @@ export async function fetchUserCollections(userId: string) {
       opened_at,
       crate:crates (
         id,
+        latitude,
+        longitude,
         fortune:fortunes (
           id,
           message,
@@ -126,5 +128,7 @@ export async function fetchUserCollections(userId: string) {
       message: 'Fortune not found',
       created_at: new Date().toISOString(),
     },
+    latitude: item.crate?.latitude,
+    longitude: item.crate?.longitude,
   }));
 }

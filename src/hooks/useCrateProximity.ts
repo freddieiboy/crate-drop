@@ -38,7 +38,7 @@ export function useCrateProximity(options: UseCrateProximityOptions = {}) {
       const collection = await recordCollection(userId, crate.id);
 
       if (collection) {
-        // Create local collection object
+        // Create local collection object with location
         const collectedCrate: CollectedCrate = {
           id: collection.id,
           crateId: crate.id,
@@ -49,6 +49,8 @@ export function useCrateProximity(options: UseCrateProximityOptions = {}) {
             message: 'A mystery awaits...',
             created_at: new Date().toISOString(),
           },
+          latitude: crate.latitude,
+          longitude: crate.longitude,
         };
 
         // Add to local inventory

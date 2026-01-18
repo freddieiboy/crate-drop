@@ -9,11 +9,13 @@ interface InventoryState {
   collections: CollectedCrate[];
   userId: string | null;
   isSyncing: boolean;
+  pendingOpenCrateId: string | null;
   addCollection: (collection: CollectedCrate) => void;
   markOpened: (collectionId: string) => void;
   removeCollection: (collectionId: string) => void;
   initUserId: () => Promise<void>;
   syncFromServer: () => Promise<void>;
+  setPendingOpenCrateId: (id: string | null) => void;
 }
 
 export const useInventoryStore = create<InventoryState>()(
@@ -22,6 +24,7 @@ export const useInventoryStore = create<InventoryState>()(
       collections: [],
       userId: null,
       isSyncing: false,
+      pendingOpenCrateId: null,
       addCollection: (collection) =>
         set((state) => ({
           collections: [...state.collections, collection],
@@ -59,6 +62,7 @@ export const useInventoryStore = create<InventoryState>()(
           set({ isSyncing: false });
         }
       },
+      setPendingOpenCrateId: (id) => set({ pendingOpenCrateId: id }),
     }),
     {
       name: 'crate-drop-inventory',
